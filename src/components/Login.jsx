@@ -1,62 +1,95 @@
 import React, { useState } from 'react';
-import axios from '../utils/axios'; // Adjust the import based on your project structure
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../store/Slice/authSlice'; // Action to save user data
-import { useNavigate } from 'react-router-dom';
+import { loginSuccess } from '../store/Slice/authSlice';
+
 
 const Login = () => {
-  const dispatch = useDispatch();
+  const { role } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch(); 
+
+  // State for email/password
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(''); // Reset error state
+  // Submit handler
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  setErrorMsg('');
 
-    try {
-      const response = await axios.post('/employee/login', { email, password });
-      console.log('Login successful:', response.data);
-      dispatch(loginSuccess(response.data)); // Dispatch success action with user data
-      navigate('/employee/profile'); // Redirect to profile page after login
-    } catch (err) {
-      console.error('Login error:', err.response?.data || err);
-      setError(err.response?.data.message || 'An error occurred during login.'); // Display error message
+  try {
+    const response = await fetch('http://localhost:8000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setErrorMsg(data.msg || 'Login failed');
+      return;
     }
-  };
+
+    if (data.token && data.user) {
+      dispatch(loginSuccess({
+        user: data.user,
+        token: data.token,
+      }));
+
+      localStorage.setItem('token', data.token);
+
+      if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/user/tasks');
+      }
+    }
+
+  } catch (error) {
+    setErrorMsg('Server error. Please try again later.');
+    console.error('Login error:', error);
+  }
+};
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-md mt-10">
-        <h2 className="text-2xl font-bold mb-6 text-center">Employee Login</h2>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-500"
-            />
-          </div>
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-200">Login</button>
-        </form>
-      </div>
+    <div className="flex flex-col items-center justify-center h-screen bg-white">
+      <h2 className="text-2xl mb-4 font-semibold">Login as {role === 'admin' ? 'Admin' : 'User'}</h2>
+
+      {errorMsg && <p className="text-red-500 mb-2">{errorMsg}</p>}
+
+      <form className="flex flex-col w-80 space-y-4" onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          className="border px-4 py-2 rounded"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="border px-4 py-2 rounded"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit" className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+          Login
+        </button>
+      </form>
+
+      <button
+        onClick={() => navigate('/signup')}
+        className="px-6 py-3 text-black rounded-lg mt-4"
+      >
+        SignUp
+      </button>
     </div>
   );
 };

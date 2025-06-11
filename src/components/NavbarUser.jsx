@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/Slice/authSlice'; // Adjust the import path if needed
 
-const Navbar = () => {
+const NavbarUser = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -16,15 +16,11 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 bg-gray-800 text-white flex justify-between items-center px-6 py-4 shadow z-10">
       <h1 className="text-xl font-bold">Admin Panel</h1>
       <div className="space-x-4">
-        <button onClick={() => navigate('/admin/tasks')} className="hover:underline">
-          List
-        </button>
-        <button onClick={() => navigate('/admin/dashboard')} className="hover:underline">
+    
+        <button onClick={() => navigate('/user/tasks')} className="hover:underline">
           Dashboard
         </button>
-        <button onClick={() => navigate('/admin/add-task')} className="hover:underline">
-          Create
-        </button>
+        
         <button onClick={handleSignOut} className="hover:underline text-red-400">
           Sign Out
         </button>
@@ -33,4 +29,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default NavbarUser;

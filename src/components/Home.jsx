@@ -6,6 +6,7 @@ import { FaUsers, FaClipboardCheck, FaDollarSign, FaTasks, FaPaperPlane } from '
 const HomePage = () => {
     const [employeeCount, setEmployeeCount] = useState(null);
     const [error, setError] = useState(null);
+    const [isLightMode, setIsLightMode] = useState(true);
 
     useEffect(() => {
         const fetchEmployeeCount = async () => {
